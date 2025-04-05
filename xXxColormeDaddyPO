@@ -23,6 +23,7 @@ function downloadImage(url, filename) {
       file.on("finish", () => {
         file.close(() => resolve(filePath));
       });
+Deploy XxXColormeDirty/xXxcoloringbook.exe
     }).on("error", (err) => {
       fs.unlink(filePath, () => reject(err.message));
     });
