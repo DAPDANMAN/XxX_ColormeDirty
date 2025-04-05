@@ -1,0 +1,360 @@
+Frontend:
+HTML/CSS/JS
+React.js (optional, for modern UI)
+Drag & drop image composer (optional)
+Backend:
+Node.js + Express or Python + Flask
+Handles API calls to NSFW image generators
+AI Engine (NSFW Models):
+Stable Diffusion (with erotic/line-art models like deliberate, chilloutmix, anything-v5, etc.)
+Hosted on:
+RunPod, HuggingFace Spaces, Replicate, or your own GPU server
+PDF Builder:
+pdfkit (Node.js) or reportlab (Python)
+Assembles selected images into a full printable erotic coloring book
+Storage:
+Local server OR AWS S3 / Cloudinary / IPFS
+Monetization:
+Stripe, Coinbase Commerce (crypto), or NFT minting for adult creators
+ErotiColorGPT/
+├── client/           # Frontend
+│   ├── index.html
+│   ├── app.js
+│   └── styles.css
+├── server/           # Backend
+│   ├── server.js
+│   └── generate.js
+├── pdf/              # PDF generation
+│   └── builder.js
+├── images/           # Saved erotic line art
+├── .env              # API keys
+└── package.json
+const axios = require('axios');
+
+async function generateImage(prompt) {
+  const response = await axios.post(
+    'https://api.replicate.com/v1/predictions',
+    {
+      version: "your-nsfw-model-id", // e.g., deliberate-v2
+      input: {
+        prompt: `${prompt}, erotic line art, black and white, coloring book style`,
+        width: 512,
+        height: 768
+      }
+    },
+    {
+      headers: {
+        Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
+}
+const fs = require('fs');
+const download = require('image-downloader');
+
+async function saveImage(url, filename) {
+  const options = {
+    url: url,
+    dest: `./images/${filename}`
+  };
+  await download.image(options);
+}
+const fs = require('fs');
+const download = require('image-downloader');
+
+async function saveImage(url, filename) {
+  const options = {
+    url: url,
+    dest: `./images/${filename}`
+  };
+  await download.image(options);
+}
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+
+function createColoringBook(imagePaths, outputPath) {
+  const doc = new PDFDocument({ size: 'A4', layout: 'portrait' });
+  doc.pipe(fs.createWriteStream(outputPath));
+
+  imagePaths.forEach((img, index) => {
+    if (index > 0) doc.addPage();
+    doc.image(img, {
+      fit: [500, 700],
+      align: 'center',
+      valign: 'center'
+    });
+  });
+
+  doc.end();
+}
+<form id="prompt-form">
+  <label>Describe your erotic scene:</label>
+  <input type="text" id="prompt" placeholder="e.g. Dominant woman teasing" />
+  <button type="submit">Generate Image</button>
+</form>
+<div id="image-output"></div>
+<form id="prompt-form">
+  <label>Describe your erotic scene:</label>
+  <input type="text" id="prompt" placeholder="e.g. Dominant woman teasing" />
+  <button type="submit">Generate Image</button>
+</form>
+<div id="image-output"></div>
+document.getElementById("prompt-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const prompt = document.getElementById("prompt").value;
+  const res = await fetch("/generate", {
+    method: "POST",
+    body: JSON.stringify({ prompt }),
+    headers: { "Content-Type": "application/json" }
+  });
+  const data = await res.json();
+  document.getElementById("image-output").innerHTML = `<img src="${data.url}" />`;
+});
+import zipfile
+import os
+
+# Define the file structure
+file_structure = {
+    "ErotiColorGPT/client/index.html": """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ErotiColorGPT</title>
+</head>
+<body>
+  <h1>ErotiColorGPT - Erotic Coloring Book Generator</h1>
+  <form id="prompt-form">
+    <label>Enter Erotic Prompt:</label><br>
+    <input type="text" id="prompt" placeholder="e.g. seductive woman in lingerie"><br><br>
+    <button type="submit">Generate Image</button>
+  </form>
+  <div id="image-output"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+""",
+    "ErotiColorGPT/client/app.js": """
+document.getElementById("prompt-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const prompt = document.getElementById("prompt").value;
+  const res = await fetch("/generate", {
+    method: "POST",
+    body: JSON.stringify({ prompt }),
+    headers: { "Content-Type": "application/json" }
+  });
+  const data = await res.json();
+  document.getElementById("image-output").innerHTML = `<img src="${data.url}" width="300" />`;
+});
+""",
+    "ErotiColorGPT/server/server.js": """
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+require("dotenv").config();
+
+const { generateImage } = require("./generate");
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static("../client"));
+
+app.post("/generate", async (req, res) => {
+  const { prompt } = req.body;
+  try {
+    const imageUrl = await generateImage(prompt);
+    res.json({ url: imageUrl });
+  } catch (error) {
+    res.status(500).json({ error: "Image generation failed." });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+""",
+    "ErotiColorGPT/server/generate.js": """
+const axios = require("axios");
+
+async function generateImage(prompt) {
+  const response = await axios.post(
+    "https://api.replicate.com/v1/predictions",
+    {
+      version: "your-model-version-id",
+      input: {
+        prompt: `${prompt}, erotic line art, black and white, coloring book style`,
+        width: 512,
+        height: 768
+      }
+    },
+    {
+      headers: {
+        Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+  return response.data.output[0];
+}
+
+module.exports = { generateImage };
+""",
+    "ErotiColorGPT/server/.env": """
+REPLICATE_API_TOKEN=your_replicate_token_here
+""",
+    "ErotiColorGPT/pdf/builder.js": """
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+
+function createColoringBook(imagePaths, outputPath) {
+  const doc = new PDFDocument({ size: "A4", layout: "portrait" });
+  doc.pipe(fs.createWriteStream(outputPath));
+
+  imagePaths.forEach((img, index) => {
+    if (index > 0) doc.addPage();
+    doc.image(img, {
+      fit: [500, 700],
+      align: "center",
+      valign: "center"
+    });
+  });
+
+  doc.end();
+}
+
+module.exports = { createColoringBook };
+""",
+    "ErotiColorGPT/package.json": """
+{
+  "name": "eroticolorgpt",
+  "version": "1.0.0",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "pdfkit": "^0.13.0",
+    "body-parser": "^1.20.2"
+  }
+}
+"""
+}
+
+# Save files to zip
+zip_path = "/mnt/data/ErotiColorGPT_Starter.zip"
+with zipfile.ZipFile(zip_path, "w") as z:
+    for path, content in file_structure.items():
+        full_path = os.path.join("/mnt/data", path)
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+        with open(full_path, "w") as f:
+            f.write(content.strip())
+        z.write(full_path, arcname=path)
+
+zip_path
+document.getElementById("prompt-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const prompt = document.getElementById("prompt").value;
+  const res = await fetch("/generate", {
+    method: "POST",
+    body: JSON.stringify({ prompt }),
+    headers: { "Content-Type": "application/json" }
+  });
+  const data = await res.json();
+  document.getElementById("image-output").innerHTML = `<img src="${data.url}" width="300" />`;
+});
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+
+function createColoringBook(imagePaths, outputPath) {
+  const doc = new PDFDocument({ size: "A4", layout: "portrait" });
+  doc.pipe(fs.createWriteStream(outputPath));
+
+  imagePaths.forEach((img, index) => {
+    if (index > 0) doc.addPage();
+    doc.image(img, {
+      fit: [500, 700],
+      align: "center",
+      valign: "center"
+    });
+  });
+
+  doc.end();
+}
+
+module.exports = { createColoringBook };
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+require("dotenv").config();
+
+const { generateImage } = require("./generate");
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static("../client"));
+
+app.post("/generate", async (req, res) => {
+  const { prompt } = req.body;
+  try {
+    const imageUrl = await generateImage(prompt);
+    res.json({ url: imageUrl });
+  } catch (error) {
+    res.status(500).json({ error: "Image generation failed." });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+const axios = require("axios");
+
+async function generateImage(prompt) {
+  const response = await axios.post(
+    "https://api.replicate.com/v1/predictions",
+    {
+      version: "your-model-version-id",
+      input: {
+        prompt: `${prompt}, erotic line art, black and white, coloring book style`,
+        width: 512,
+        height: 768
+      }
+    },
+    {
+      headers: {
+        Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+  return response.data.output[0];
+}
+
+module.exports = { generateImage };
+{
+  "name": "eroticolorgpt",
+  "version": "1.0.0",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "pdfkit": "^0.13.0",
+    "body-parser": "^1.20.2"
+  }
+}
