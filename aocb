@@ -1,0 +1,32 @@
+Create a /webhook endpoint and obtain your webhook secret key in the Webhooks tab in Workbench to listen for events related to subscription activity. After a successful payment and redirect to the success page, verify that the subscription status is active and grant your customer access to the products and features they subscribed to.
+Server
+Run the server
+Start your server and navigate to http://localhost:4242/
+ruby server.rb
+Server
+Click the checkout button. In the Stripe Checkout page, use any of these test cards to simulate a payment.
+Payment succeeds
+4242 4242 4242 4242
+Payment requires authentication
+4000 0025 0000 3155
+Payment is declined
+4000 0000 0000 9995
+Client
+Anchor the subscription billing cycle
+Use subscription_data to set a billing_cycle_anchor timestamp for a subscription’s next billing date. See Setting the billing cycle date in Checkout for more information.
+Server
+Calculate and collect the right amount of tax on your Stripe transactions. Learn more about Stripe Tax and how to add it to Checkout. Activate Stripe Tax in the Dashboard before integrating.
+Add the automatic tax parameter
+Set the automatic_tax parameter to enabled: true.
+Server
+Create connected accounts and collect requirements using the Stripe API. Learn more
+Accept a payment
+Create direct charges. Your platform will pay Stripe fees and can collect revenue using application fees. Learn more
+Build an account dashboard
+Build a dashboard yourself using the Stripe API or use embedded components. Learn more
+Understand your platform’s merchant risk responsibilities
+Build tools and processes to manage negative balance liabilities on your connected accounts. Learn more
+Collect ongoing requirements
+Handle ongoing changes in requirements for your connected accounts using the Stripe API. Learn more
+Pay out users
+Manage bank accounts and debit cards using Stripe Financial Connections or the Stripe API, then pay out your connected accounts.
